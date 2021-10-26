@@ -2,9 +2,10 @@ using bmonsterman.security.service.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using System.Linq;
 using bmonsterman.security.service.Services;
 using bmonsterman.security.service.Entities;
+using bmonsterman.security.service.Services.Extensions;
+using System.Text.Encodings.Web;
 
 namespace bmonsterman.security.service.Controllers
 {
@@ -21,9 +22,11 @@ namespace bmonsterman.security.service.Controllers
     public class UsersController : Controller
     {
         private readonly IUserManager _userManager;
+        private readonly IEmailSender _emailSender;
 
-        public UsersController(IUserManager userManager){
+        public UsersController(IUserManager userManager, IEmailSender emailSender){
               _userManager = userManager;
+              _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -62,6 +65,11 @@ namespace bmonsterman.security.service.Controllers
                 if(result.Succeeded)
                 {
                     var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    
+                    var urlEncodedUserId = UrlEncoder.Default.Encode(user.Id.ToString());
+                    var confirmAccountPageUrl = $"{registerRequest.ConfirmAccountUrl}?userId={urlEncodedUserId}&token={confirmationToken}";
+
+                    await _emailSender.SendEmailConfirmationAsync(registerRequest.Email, confirmAccountPageUrl);
 
                     return Ok(confirmationToken);
                 }

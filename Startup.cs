@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using bmonsterman.security.service.Data;
 using bmonsterman.security.service.Services;
+using bmonsterman.security.service.Configuration;
 using Microsoft.AspNetCore.Identity;
 using bmonsterman.security.service.Entities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -56,8 +57,10 @@ namespace bmonsterman.security.service
               .AddUserManager<UserManager>()
               .AddDefaultTokenProviders();
 
+            services.Configure<SendGridSettings>(Configuration);
             services.TryAddScoped<IUserManager, UserManager>();
-            services.TryAddScoped<ISignInManager, SigninManager>();  
+            services.TryAddScoped<ISignInManager, SigninManager>(); 
+            services.AddSingleton<IEmailSender, SendGridEmailSender>(); 
 
             services.AddAuthentication();
             services.AddDataProtection();
