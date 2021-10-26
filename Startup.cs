@@ -7,6 +7,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using bmonsterman.security.service.Data;
+using bmonsterman.security.service.Services;
+using Microsoft.AspNetCore.Identity;
+using bmonsterman.security.service.Entities;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace bmonsterman.security.service
 {
@@ -23,7 +27,10 @@ namespace bmonsterman.security.service
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers()
+                    .AddNewtonsoftJson(options => {
+                        options.UseCamelCasing(true);
+                    });
             
             var dbUserName = Configuration["security-db-username"];
             var dbPassword = Configuration["security-db-password"];
@@ -37,6 +44,24 @@ namespace bmonsterman.security.service
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "bmonsterman.security.service", Version = "v1" });
             });
+
+            // Adds out of the box authentication
+            services.AddIdentityCore<User>(options =>
+            {
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
+            }).AddRoles<Role>()
+              .AddEntityFrameworkStores<SecurityDbContext>()
+              .AddSignInManager<SigninManager>()
+              .AddUserManager<UserManager>()
+              .AddDefaultTokenProviders();
+
+            services.TryAddScoped<IUserManager, UserManager>();
+            services.TryAddScoped<ISignInManager, SigninManager>();  
+
+            services.AddAuthentication();
+            services.AddDataProtection();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

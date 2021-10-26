@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Linq;
+using bmonsterman.security.service.Services;
+using bmonsterman.security.service.Entities;
 
 namespace bmonsterman.security.service.Controllers
 {
@@ -18,6 +20,12 @@ namespace bmonsterman.security.service.Controllers
     [Route("users")]
     public class UsersController : Controller
     {
+        private readonly IUserManager _userManager;
+
+        public UsersController(IUserManager userManager){
+              _userManager = userManager;
+        }
+
         [HttpGet]
         [Route("{id:int}")]
         [AllowAnonymous]
@@ -42,7 +50,26 @@ namespace bmonsterman.security.service.Controllers
 
             if (ModelState.IsValid)
             {
-                return Ok();
+                var user = new User {
+                    UserName = registerRequest.Email,
+                    Email = registerRequest.Email,
+                    FirstName = registerRequest.FirstName,
+                    LastName = registerRequest.LastName
+                };
+
+                var result = await _userManager.CreateAsync(user, registerRequest.Password);
+
+                if(result.Succeeded)
+                {
+                    var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                    return Ok(confirmationToken);
+                }
+
+                foreach(var error in result.Errors)
+                    ModelState.AddModelError(error.Code, error.Description);
+
+                return BadRequest(ModelState);
             }
 
             return BadRequest(ModelState);
