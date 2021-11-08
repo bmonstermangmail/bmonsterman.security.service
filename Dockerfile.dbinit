@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/mssql-tools as tools
+COPY ./Migrations/init.sql .
+COPY ./Migrations/init.sh .
+
+RUN chmod 777 ./init.sh
+
+CMD ./init.sh "${security_db_host}" "${sa_db_username}" "${sa_db_password}" "${service_db_username}" "${service_db_password}"
+
+#CMD /opt/mssql-tools/bin/sqlcmd -S "${security_db_host}" -U "${sa_db_username}" -P "${sa_db_password}" -v ServiceUsername="${service_db_username}" -v ServicePassword="${service_db_password}"  -i ./init.sql
+#-v ServiceUsername\"=${service_db_username}\" -v ServicePassword=\"${service_db_password}\" -i ./init.sql

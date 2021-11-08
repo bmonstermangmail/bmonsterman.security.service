@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
+
+# Creates a non-root user with an explicit UID and adds permission to access the /app folder
+# For more info, please refer to https://aka.ms/vscode-docker-dotnet-configure-containers
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools" 
+
+WORKDIR /src
+COPY ["bmonsterman.security.service.csproj", "./"]
+RUN dotnet restore "bmonsterman.security.service.csproj"
+COPY . .
+
+CMD ["dotnet", "ef", "database", "update"]
+

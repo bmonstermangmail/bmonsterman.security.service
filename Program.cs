@@ -9,12 +9,7 @@ namespace bmonsterman.security.service
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args)
-            .ConfigureAppConfiguration((context,builder)=>{
-                if(context.HostingEnvironment.IsDevelopment())                
-                    builder.AddUserSecrets<Program>();
-            })
-            .Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
